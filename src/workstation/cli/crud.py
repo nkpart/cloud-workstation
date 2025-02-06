@@ -472,10 +472,17 @@ def delete(context: click.Context, **kwargs):
     type=str,
     metavar="<str>",
 )
+@click.option(
+    "--watch-n",
+    help="Repeat the sync every N seconds.",
+    type=int,
+    default=None,
+)
 @click.pass_context
 def sync(
     context: click.Context,
     name: str,
+    watch_n: Optional[int],
     **kwargs,
 ):
     """Sync files to workstation."""
@@ -492,6 +499,7 @@ def sync(
         source=source,
         destination=destination,
         **workstation_details,
+        watch_n=watch_n,
     )
 
     for line in result.stdout.split("\n"):

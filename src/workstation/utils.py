@@ -7,6 +7,7 @@ import sys
 import time
 from datetime import datetime, timedelta, timezone
 from subprocess import CalledProcessError
+from typing import Optional
 
 import google.auth
 from google.auth.exceptions import DefaultCredentialsError, RefreshError
@@ -134,6 +135,7 @@ def sync_files_workstation(
     config: str,
     source: str,
     destination: str,
+    watch_n: Optional[int] = None,
 ):
     """
     Synchronize files from the local system to the workstation using rsync over an SSH tunnel.
@@ -154,6 +156,8 @@ def sync_files_workstation(
         The source directory on the local system.
     destination : str
         The destination directory on the workstation.
+    watch_n : Optional[int], optional
+        When not None, run the rsync every N seconds, in a loop forever. Default is None.
 
     Returns
     -------
@@ -201,7 +205,7 @@ def sync_files_workstation(
         "--exclude=.git",
         "--exclude=.DS_Store",
         "-e",
-        f"ssh -p {port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null",
+        f"\"ssh -p {port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null\"",
         source_path,
         destination_path,
     ]
@@ -212,7 +216,13 @@ def sync_files_workstation(
         time.sleep(1)
         counter += 1
 
-    result = subprocess.run(command, capture_output=True, text=True)
+    if watch_n is not None:
+        command = ["watch", "-n", str(watch_n), " ".join(command)]
+        capture_output = False
+    else:
+        capture_output = True
+    result = subprocess.run(command, capture_output=capture_output, text=True)
+
     process.kill()
     return result
 
