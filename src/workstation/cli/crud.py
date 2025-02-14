@@ -548,19 +548,22 @@ def ssh(context: click.Context, name: str, command: str = None, **kwargs):
 
     workstation_details = config_manager.read_configuration(name)
     user = getpass.getuser()
-    
+
     # Construct and execute the gcloud ssh command
     import subprocess
+
     ssh_cmd = [
-        "gcloud", "workstations", "ssh",
+        "gcloud",
+        "workstations",
+        "ssh",
         f"--project={workstation_details['project']}",
         f"--cluster={workstation_details['cluster']}",
         f"--config={workstation_details['config']}",
         f"--region={workstation_details['location']}",
         f"--user={user}",
-        name  # The workstation name needs to be a positional argument
+        name,
     ]
-    
+
     # Add command if specified
     if command:
         # Always use -t for all commands to ensure proper terminal handling
@@ -568,5 +571,5 @@ def ssh(context: click.Context, name: str, command: str = None, **kwargs):
         console.print(f"Running command '{command}' on workstation {name}...")
     else:
         console.print(f"Connecting to workstation {name}...")
-    
+
     subprocess.run(ssh_cmd)
